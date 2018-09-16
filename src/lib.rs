@@ -4,6 +4,8 @@
 extern crate adler32;
 extern crate byteorder;
 extern crate crc;
+#[macro_use]
+extern crate log;
 
 pub use finish::Finish;
 

@@ -115,6 +115,9 @@ impl<R: Read> Read for Decoder<R> {
         if self.eos {
             Ok(0)
         } else {
+            let mut buf_ = Vec::new();
+            buf_.extend_from_slice(buf);
+
             let read_size = self.reader.read(buf)?;
             self.crc32.update(&buf[..read_size]);
             if read_size == 0 {
@@ -122,7 +125,9 @@ impl<R: Read> Read for Decoder<R> {
                     .bit_reader_mut()
                     .transaction(|r| Trailer::read_from(r.as_inner_mut()))?;
                 self.eos = true;
+
                 if trailer.crc32() != self.crc32.value() {
+                    warn!("fail to decompress: data= {:?}", buf_);
                     Err(invalid_data_error!(
                         "CRC32 mismatched: value={}, expected={}",
                         self.crc32.value(),
